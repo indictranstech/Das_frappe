@@ -190,15 +190,8 @@ class EmailAccount(Document):
 					parent = frappe.get_doc("Communication", in_reply_to)
 
 					if parent.reference_name:
-						if self.append_to:
-							# parent must reference only if name matches
-							if parent.reference_doctype==self.append_to:
-								# parent same as parent of last communication
-								parent = frappe.get_doc(parent.reference_doctype,
-									parent.reference_name)
-						else:
-							parent = frappe.get_doc(parent.reference_doctype,
-								parent.reference_name)
+						parent = frappe.get_doc(parent.reference_doctype,
+							parent.reference_name)
 
 		if not parent and self.append_to and sender_field:
 			if subject_field:
@@ -221,14 +214,6 @@ class EmailAccount(Document):
 						subject_field: ("like", "%{0}%".format(subject)),
 						"creation": (">", (get_datetime() - relativedelta(days=10)).strftime(DATE_FORMAT))
 					}, fields="name")
-
-			else:
-				# try and match by sender only
-				# as there is no subject field, it implies that threading isn't by subject, but by sender only
-
-				parent = frappe.db.get_all(self.append_to, filters={
-					sender_field: email.from_email,
-				}, fields="name")
 
 			if parent:
 				parent = frappe.get_doc(self.append_to, parent[0].name)

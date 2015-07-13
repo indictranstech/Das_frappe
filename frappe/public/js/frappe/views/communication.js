@@ -118,6 +118,10 @@ frappe.views.CommunicationComposer = Class.extend({
 					this.subject = "Re: " + this.subject;
 				}
 			}
+
+			if (!this.subject) {
+				this.subject = __(this.frm.doctype) + ': ' + this.frm.docname;
+			}
 		}
 	},
 
@@ -327,8 +331,8 @@ frappe.views.CommunicationComposer = Class.extend({
 			btn: btn,
 			callback: function(r) {
 				if(!r.exc) {
-					if(form_values.send_email)
-						msgprint(__("Email sent to {0}", [form_values.recipients]));
+					if(form_values.send_email && r.message["recipients"])
+						msgprint(__("Email sent to {0}", [r.message["recipients"]]));
 					me.dialog.hide();
 
 					if (cur_frm) {

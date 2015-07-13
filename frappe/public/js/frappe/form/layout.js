@@ -37,19 +37,8 @@ frappe.ui.form.Layout = Class.extend({
 			this.wrapper.find(".empty-form-alert").remove();
 		}
 
-		for(var i=0, l=this.fields_list.length; i<l; i++) {
-			var fieldobj = this.fields_list[i];
-			if(me.doc) {
-				fieldobj.doc = me.doc;
-				fieldobj.doctype = me.doc.doctype;
-				fieldobj.docname = me.doc.name;
-				fieldobj.df = frappe.meta.get_docfield(me.doc.doctype,
-					fieldobj.df.fieldname, me.frm.doc.name);
-				// on form change, permissions can change
-				fieldobj.perm = me.frm.perm;
-			};
-			fieldobj.refresh && fieldobj.refresh();
-		}
+		// NOTE this might seem redundant at first, but it needs to be executed when frm.refresh_fields is called
+		me.attach_doc_and_docfields(true);
 
 		if(this.frm && this.frm.wrapper) {
 			$(this.frm.wrapper).trigger("refresh-fields");
@@ -58,10 +47,11 @@ frappe.ui.form.Layout = Class.extend({
 		if (this.frm) {
 			// show empty form notification
 			setTimeout(function() {
-				me.wrapper.find(".empty-form-alert").remove();
-				if(!(me.wrapper.find(".frappe-control:visible").length)) {
-					$('<div class="empty-form-alert text-muted" style="margin: 15px; margin-top: -15px;">'+__("This form does not have any input")+'</div>')
-					.appendTo(me.wrapper)
+				me.page.find(".empty-form-alert").remove();
+				if(!(me.page.find(".frappe-control:visible").length)) {
+					$('<div class="empty-form-alert text-muted" style="padding: 15px;">'
+						+__("This form does not have any input")+'</div>')
+					.appendTo(me.page);
 				}
 			}, 100);
 		}
@@ -71,6 +61,23 @@ frappe.ui.form.Layout = Class.extend({
 
 		// refresh sections
 		this.refresh_sections();
+	},
+	attach_doc_and_docfields: function(refresh) {
+		var me = this;
+		for(var i=0, l=this.fields_list.length; i<l; i++) {
+			var fieldobj = this.fields_list[i];
+			if(me.doc) {
+				fieldobj.doc = me.doc;
+				fieldobj.doctype = me.doc.doctype;
+				fieldobj.docname = me.doc.name;
+				fieldobj.df = frappe.meta.get_docfield(me.doc.doctype,
+					fieldobj.df.fieldname, me.frm.doc.name);
+
+				// on form change, permissions can change
+				fieldobj.perm = me.frm.perm;
+			};
+			refresh && fieldobj.refresh && fieldobj.refresh();
+		}
 	},
 	render: function() {
 		var me = this;

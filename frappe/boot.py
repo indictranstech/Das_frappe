@@ -70,6 +70,7 @@ def get_bootinfo():
 
 	bootinfo.error_report_email = frappe.get_hooks("error_report_email")
 	bootinfo.default_background_image = get_url("/assets/frappe/images/ui/into-the-dawn.jpg")
+	bootinfo.calendars = sorted(frappe.get_hooks("calendars"))
 
 	return bootinfo
 
@@ -104,8 +105,15 @@ def get_allowed_pages():
 
 def load_translations(bootinfo):
 	if frappe.local.lang != 'en':
-		bootinfo["__messages"] = frappe.get_lang_dict("boot")
+		messages = frappe.get_lang_dict("boot")
+
 		bootinfo["lang"] = frappe.lang
+
+		# load translated report names
+		for name in bootinfo.user.all_reports:
+			messages[name] = frappe._(name)
+
+		bootinfo["__messages"] = messages
 
 def get_fullnames():
 	"""map of user fullnames"""
